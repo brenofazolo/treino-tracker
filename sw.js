@@ -16,20 +16,13 @@ self.addEventListener('activate',event=>{
 
 self.addEventListener('fetch',event=>{
   if(event.request.method!=='GET') return;
-  event.respondWith(
-    fetch(event.request).then(response=>{
-      const copy=response.clone();
-      caches.open(CACHE).then(cache=>cache.put(event.request,copy));
-      return response;
-    }).catch(()=>caches.match(event.request))
-  );
-});
-
-self.addEventListener('fetch',event=>{
   const url=new URL(event.request.url);
-  if(event.request.method!=='GET' || !url.pathname.endsWith('/index.html')) return;
+  const isHtml=url.pathname.endsWith('/index.html') || url.pathname.endsWith('/treino-tracker/');
   event.respondWith(
     fetch(event.request).then(async response=>{
+      const copy=response.clone();
+      caches.open(CACHE).then(cache=>cache.put(event.request,copy));
+      if(!isHtml) return response;
       const type=response.headers.get('content-type')||'';
       if(!type.includes('text/html')) return response;
       const html=await response.text();
